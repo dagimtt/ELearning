@@ -1,0 +1,16 @@
+C:\Projects\ELearning\backend\ELearning.Application\bin\Debug\net10.0\ELearning.Application.deps.json
+C:\Projects\ELearning\backend\ELearning.Application\bin\Debug\net10.0\ELearning.Application.dll
+C:\Projects\ELearning\backend\ELearning.Application\bin\Debug\net10.0\ELearning.Application.pdb
+C:\Projects\ELearning\backend\ELearning.Application\bin\Debug\net10.0\ELearning.Domain.dll
+C:\Projects\ELearning\backend\ELearning.Application\bin\Debug\net10.0\ELearning.Domain.pdb
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ELearning.Application.csproj.AssemblyReference.cache
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ELearning.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ELearning.Application.AssemblyInfoInputs.cache
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ELearning.Application.AssemblyInfo.cs
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ELearning.Application.csproj.CoreCompileInputs.cache
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ELearning.Application.sourcelink.json
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ELearnin.90755AA2.Up2Date
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ELearning.Application.dll
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\refint\ELearning.Application.dll
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ELearning.Application.pdb
+C:\Projects\ELearning\backend\ELearning.Application\obj\Debug\net10.0\ref\ELearning.Application.dll

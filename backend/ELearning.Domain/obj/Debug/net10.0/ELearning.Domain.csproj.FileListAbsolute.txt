@@ -1,0 +1,13 @@
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\ELearning.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\ELearning.Domain.AssemblyInfoInputs.cache
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\ELearning.Domain.AssemblyInfo.cs
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\ELearning.Domain.csproj.CoreCompileInputs.cache
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\ELearning.Domain.sourcelink.json
+C:\Projects\ELearning\backend\ELearning.Domain\bin\Debug\net10.0\ELearning.Domain.deps.json
+C:\Projects\ELearning\backend\ELearning.Domain\bin\Debug\net10.0\ELearning.Domain.dll
+C:\Projects\ELearning\backend\ELearning.Domain\bin\Debug\net10.0\ELearning.Domain.pdb
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\ELearning.Domain.csproj.AssemblyReference.cache
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\ELearning.Domain.dll
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\refint\ELearning.Domain.dll
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\ELearning.Domain.pdb
+C:\Projects\ELearning\backend\ELearning.Domain\obj\Debug\net10.0\ref\ELearning.Domain.dll
