@@ -6,13 +6,21 @@ import RegisterPage from './pages/RegisterPage'
 import CatalogPage from './pages/CatalogPage'
 import CourseDetailPage from './pages/CourseDetailPage'
 import NotFoundPage from './pages/NotFoundPage'
+import MyCoursesPage from './pages/MyCoursesPage'
+import CoursePlayerPage from './pages/CoursePlayerPage'
 import RequireAuth from './routes/RequireAuth'
 import RequireRole from './routes/RequireRole'
+import InstructorDashboardPage from './pages/instructor/InstructorDashboardPage'
+import CreateCoursePage from './pages/instructor/CreateCoursePage'
+import CourseEditorPage from './pages/instructor/CourseEditorPage'
+import LessonEditorPage from './pages/instructor/LessonEditorPage'
 
-// Placeholders — filled in Milestones 4 & 5
-const MyCourses = () => <div className="p-4"><h1 className="text-2xl font-bold">My Courses (soon)</h1></div>
-const InstructorHome = () => <div className="p-4"><h1 className="text-2xl font-bold">Instructor Dashboard (soon)</h1></div>
-const AdminUsers = () => <div className="p-4"><h1 className="text-2xl font-bold">Admin Users (soon)</h1></div>
+// Placeholder — filled in Milestone 6
+const AdminUsers = () => (
+  <div className="p-4">
+    <h1 className="text-2xl font-bold">Admin Users (soon)</h1>
+  </div>
+)
 
 export default function App() {
   return (
@@ -23,37 +31,96 @@ export default function App() {
 
       {/* Everything else wrapped in the layout */}
       <Route element={<Layout />}>
+        {/* Public */}
         <Route path="/" element={<HomePage />} />
         <Route path="/courses" element={<CatalogPage />} />
         <Route path="/courses/:id" element={<CourseDetailPage />} />
 
-        {/* Authenticated routes */}
-        <Route element={<RequireAuth><></></RequireAuth>}>
-          <Route
-            path="/my-courses"
-            element={
+        {/* Learner */}
+        <Route
+          path="/my-courses"
+          element={
+            <RequireAuth>
               <RequireRole roles={['Learner']}>
-                <MyCourses />
+                <MyCoursesPage />
               </RequireRole>
-            }
-          />
-          <Route
-            path="/instructor"
-            element={
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/learn/:enrollmentId"
+          element={
+            <RequireAuth>
+              <RequireRole roles={['Learner']}>
+                <CoursePlayerPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+
+        {/* Instructor — order matters: /new before /:id */}
+        <Route
+          path="/instructor"
+          element={
+            <RequireAuth>
               <RequireRole roles={['Instructor']}>
-                <InstructorHome />
+                <InstructorDashboardPage />
               </RequireRole>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/instructor/courses/new"
+          element={
+            <RequireAuth>
+              <RequireRole roles={['Instructor']}>
+                <CreateCoursePage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/instructor/courses/:id"
+          element={
+            <RequireAuth>
+              <RequireRole roles={['Instructor']}>
+                <CourseEditorPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/instructor/courses/:courseId/lessons/new"
+          element={
+            <RequireAuth>
+              <RequireRole roles={['Instructor']}>
+                <LessonEditorPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/instructor/courses/:courseId/lessons/:lessonId"
+          element={
+            <RequireAuth>
+              <RequireRole roles={['Instructor']}>
+                <LessonEditorPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+
+        {/* Admin */}
+        <Route
+          path="/admin/users"
+          element={
+            <RequireAuth>
               <RequireRole roles={['Admin']}>
                 <AdminUsers />
               </RequireRole>
-            }
-          />
-        </Route>
+            </RequireAuth>
+          }
+        />
 
         <Route path="*" element={<NotFoundPage />} />
       </Route>

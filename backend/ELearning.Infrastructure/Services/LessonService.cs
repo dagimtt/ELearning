@@ -71,9 +71,9 @@ public class LessonService : ILessonService
             CourseId = courseId,
             Title = request.Title,
             ContentType = request.ContentType,
-            ContentText = request.ContentType == LessonContentType.Text ? request.ContentText : null,
-            VideoUrl = request.ContentType == LessonContentType.Video ? request.VideoUrl : null,
-            AttachmentUrl = request.ContentType == LessonContentType.Attachment ? request.AttachmentUrl : null,
+          ContentText = request.ContentText,
+VideoUrl = request.ContentType == LessonContentType.Video ? request.VideoUrl : null,
+AttachmentUrl = request.ContentType == LessonContentType.Attachment ? request.AttachmentUrl : null,
             OrderIndex = nextOrder + 1
         };
 
@@ -89,9 +89,9 @@ public class LessonService : ILessonService
 
         lesson.Title = request.Title;
         lesson.ContentType = request.ContentType;
-        lesson.ContentText = request.ContentType == LessonContentType.Text ? request.ContentText : null;
-        lesson.VideoUrl = request.ContentType == LessonContentType.Video ? request.VideoUrl : null;
-        lesson.AttachmentUrl = request.ContentType == LessonContentType.Attachment ? request.AttachmentUrl : null;
+       lesson.ContentText = request.ContentText;
+lesson.VideoUrl = request.ContentType == LessonContentType.Video ? request.VideoUrl : null;
+lesson.AttachmentUrl = request.ContentType == LessonContentType.Attachment ? request.AttachmentUrl : null;
         lesson.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
