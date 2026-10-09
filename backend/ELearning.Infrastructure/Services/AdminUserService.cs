@@ -5,7 +5,7 @@ using ELearning.Domain.Entities;
 using ELearning.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
+using ELearning.Domain.Enums;
 namespace ELearning.Infrastructure.Services;
 
 public class AdminUserService : IAdminUserService
@@ -16,6 +16,35 @@ public class AdminUserService : IAdminUserService
     private readonly UserManager<AppUser> _userManager;
     private readonly ICurrentUserService _currentUser;
 
+public async Task<AdminStatsDto> GetStatsAsync(CancellationToken ct = default)
+{
+    var usersByRole = await _db.UserRoles
+        .Join(_db.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
+        .GroupBy(name => name)
+        .Select(g => new { Role = g.Key, Count = g.Count() })
+        .ToListAsync(ct);
+
+    int CountFor(string role) =>
+        usersByRole.FirstOrDefault(x => x.Role == role)?.Count ?? 0;
+
+    var totalUsers = await _db.Users.CountAsync(ct);
+    var totalCourses = await _db.Courses.CountAsync(ct);
+    var published = await _db.Courses.CountAsync(c => c.Status == CourseStatus.Published, ct);
+    var drafts = totalCourses - published;
+    var totalEnrollments = await _db.Enrollments.CountAsync(ct);
+    var totalLessons = await _db.Lessons.CountAsync(ct);
+
+    return new AdminStatsDto(
+        totalUsers,
+        CountFor("Admin"),
+        CountFor("Instructor"),
+        CountFor("Learner"),
+        totalCourses,
+        published,
+        drafts,
+        totalEnrollments,
+        totalLessons);
+}
     public AdminUserService(AppDbContext db, UserManager<AppUser> userManager, ICurrentUserService currentUser)
     {
         _db = db;

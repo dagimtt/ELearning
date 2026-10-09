@@ -1,29 +1,36 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { coursesApi } from '../../api/endpoints'
+import { coursesApi, analyticsApi } from '../../api/endpoints'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EmptyState from '../../components/EmptyState'
 import ErrorState from '../../components/ErrorState'
 import StatusBadge from '../../components/StatusBadge'
+import ProgressBar from '../../components/ProgressBar'
 
 export default function InstructorDashboardPage() {
-  const query = useQuery({
+  const coursesQuery = useQuery({
     queryKey: ['instructor-courses'],
     queryFn: coursesApi.mine,
   })
 
-  if (query.isLoading) return <LoadingSpinner label="Loading your courses…" />
-  if (query.isError)
+  const overviewQuery = useQuery({
+    queryKey: ['instructor-analytics-overview'],
+    queryFn: analyticsApi.overview,
+  })
+
+  if (coursesQuery.isLoading) return <LoadingSpinner label="Loading your courses…" />
+  if (coursesQuery.isError)
     return (
       <ErrorState
         message="Could not load your courses."
-        onRetry={() => query.refetch()}
+        onRetry={() => coursesQuery.refetch()}
       />
     )
 
-  const courses = query.data ?? []
+  const courses = coursesQuery.data ?? []
   const drafts = courses.filter((c) => c.status === 0).length
   const published = courses.filter((c) => c.status === 1).length
+  const overview = overviewQuery.data
 
   return (
     <div>
@@ -48,6 +55,16 @@ export default function InstructorDashboardPage() {
         </Link>
       </div>
 
+      {/* Overview stats */}
+      {overview && overview.totalCourses > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <StatTile label="Total learners" value={overview.totalEnrollments} tone="blue" />
+          <StatTile label="Completions" value={overview.totalCompletions} tone="green" />
+          <StatTile label="Avg completion" value={`${overview.averageCompletionRate}%`} tone="amber" />
+          <StatTile label="Published" value={overview.publishedCourses} tone="gray" />
+        </div>
+      )}
+
       {courses.length === 0 ? (
         <EmptyState
           title="You haven't created a course yet"
@@ -63,54 +80,77 @@ export default function InstructorDashboardPage() {
         />
       ) : (
         <div className="space-y-3">
-          {courses.map((course) => (
-            <div
-              key={course.id}
-              className="bg-white rounded-lg border p-4 flex items-center gap-4"
-            >
-              <div className="w-16 h-16 flex-shrink-0 rounded bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center text-blue-400 text-2xl font-bold">
-                {course.title.charAt(0).toUpperCase()}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <StatusBadge status={course.status} />
-                  <span className="text-xs text-gray-500">
-                    {course.categoryName}
-                  </span>
-                  <span className="text-xs text-gray-500">·</span>
-                  <span className="text-xs text-gray-500">
-                    {course.lessonCount} lesson{course.lessonCount !== 1 ? 's' : ''}
-                  </span>
+          {courses.map((course) => {
+            const summary = overview?.courses?.find((c) => c.courseId === course.id)
+            return (
+              <div
+                key={course.id}
+                className="bg-white rounded-lg border p-4 flex items-center gap-4"
+              >
+                <div className="w-16 h-16 flex-shrink-0 rounded bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center text-blue-400 text-2xl font-bold">
+                  {course.title.charAt(0).toUpperCase()}
                 </div>
-                <h3 className="font-semibold text-gray-900 truncate">
-                  {course.title}
-                </h3>
-                <p className="text-sm text-gray-500 truncate">
-                  {course.description}
-                </p>
-              </div>
 
-              <div className="flex items-center gap-2">
-                <Link
-                  to={`/courses/${course.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:underline"
-                >
-                  Preview
-                </Link>
-                <Link
-                  to={`/instructor/courses/${course.id}`}
-                  className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded font-medium"
-                >
-                  Edit
-                </Link>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <StatusBadge status={course.status} />
+                    <span className="text-xs text-gray-500">
+                      {course.categoryName}
+                    </span>
+                    <span className="text-xs text-gray-500">·</span>
+                    <span className="text-xs text-gray-500">
+                      {course.lessonCount} lesson{course.lessonCount !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 truncate">
+                    {course.title}
+                  </h3>
+                  {summary && summary.totalEnrolled > 0 ? (
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className="w-32">
+                        <ProgressBar percent={summary.completionRate} size="sm" />
+                      </div>
+                      <span className="text-xs text-gray-600 whitespace-nowrap">
+                        {summary.completed}/{summary.totalEnrolled} completed
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 truncate">
+                      {course.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Link
+                    to={`/instructor/courses/${course.id}`}
+                    className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded font-medium"
+                  >
+                    Open
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
+    </div>
+  )
+}
+
+function StatTile({ label, value, tone = 'gray' }) {
+  const tones = {
+    blue: 'bg-blue-50 text-blue-700',
+    green: 'bg-green-50 text-green-700',
+    amber: 'bg-amber-50 text-amber-700',
+    gray: 'bg-gray-100 text-gray-700',
+  }
+  return (
+    <div className="bg-white rounded-lg border p-4">
+      <div className="text-xs text-gray-500 mb-1">{label}</div>
+      <div className={`inline-block text-2xl font-bold px-2 rounded ${tones[tone]}`}>
+        {value}
+      </div>
     </div>
   )
 }

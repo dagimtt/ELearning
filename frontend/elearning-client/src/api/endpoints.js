@@ -55,3 +55,10 @@ export const adminApi = {
   changeRoles: (id, roles) => client.put(`/admin/users/${id}/roles`, { roles }).then(r => r.data),
   deleteUser: (id) => client.delete(`/admin/users/${id}`).then(r => r.data),
 }
+// ---------- Analytics ----------
+export const analyticsApi = {
+  course: (courseId) =>
+    client.get(`/instructor/courses/${courseId}/analytics`).then(r => r.data),
+  overview: () =>
+    client.get('/instructor/analytics/overview').then(r => r.data),
+}

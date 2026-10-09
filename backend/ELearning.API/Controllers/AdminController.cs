@@ -21,7 +21,10 @@ public class AdminController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
         => Ok(await _users.GetUsersAsync(search, page, pageSize, ct));
-
+ [HttpGet("stats")]
+public async Task<ActionResult<AdminStatsDto>> GetStats(CancellationToken ct)
+    => Ok(await _users.GetStatsAsync(ct));
+    
     [HttpPut("users/{id:guid}/roles")]
     public async Task<ActionResult<AdminUserDto>> ChangeRoles(
         Guid id, ChangeUserRolesRequest request, CancellationToken ct)

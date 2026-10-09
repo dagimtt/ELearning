@@ -14,7 +14,8 @@ import InstructorDashboardPage from './pages/instructor/InstructorDashboardPage'
 import CreateCoursePage from './pages/instructor/CreateCoursePage'
 import CourseEditorPage from './pages/instructor/CourseEditorPage'
 import LessonEditorPage from './pages/instructor/LessonEditorPage'
-
+import AdminUsersPage from './pages/admin/AdminUsersPage'
+import AdminCategoriesPage from './pages/admin/AdminCategoriesPage'
 // Placeholder — filled in Milestone 6
 const AdminUsers = () => (
   <div className="p-4">
@@ -57,7 +58,26 @@ export default function App() {
             </RequireAuth>
           }
         />
-
+     <Route
+  path="/admin/users"
+  element={
+    <RequireAuth>
+      <RequireRole roles={['Admin']}>
+        <AdminUsersPage />
+      </RequireRole>
+    </RequireAuth>
+  }
+/>
+<Route
+  path="/admin/categories"
+  element={
+    <RequireAuth>
+      <RequireRole roles={['Admin']}>
+        <AdminCategoriesPage />
+      </RequireRole>
+    </RequireAuth>
+  }
+/>
         {/* Instructor — order matters: /new before /:id */}
         <Route
           path="/instructor"

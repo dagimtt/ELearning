@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { coursesApi } from '../../api/endpoints'
@@ -8,9 +9,11 @@ import CourseMetadataPanel from './CourseMetadataPanel'
 import CourseLessonsPanel from './CourseLessonsPanel'
 import CoursePublishPanel from './CoursePublishPanel'
 import CourseDangerPanel from './CourseDangerPanel'
+import CourseAnalyticsPanel from './CourseAnalyticsPanel'
 
 export default function CourseEditorPage() {
   const { id } = useParams()
+  const [tab, setTab] = useState('content') // 'content' | 'analytics'
 
   const query = useQuery({
     queryKey: ['course', id],
@@ -58,17 +61,48 @@ export default function CourseEditorPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <CourseMetadataPanel course={course} />
-          <CourseLessonsPanel course={course} />
-        </div>
-
-        <aside className="space-y-6">
-          <CoursePublishPanel course={course} />
-          <CourseDangerPanel course={course} />
-        </aside>
+      {/* Tabs */}
+      <div className="border-b mb-6 flex gap-1">
+        <TabButton active={tab === 'content'} onClick={() => setTab('content')}>
+          Content
+        </TabButton>
+        <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
+          Analytics
+        </TabButton>
       </div>
+
+      {tab === 'content' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <CourseMetadataPanel course={course} />
+            <CourseLessonsPanel course={course} />
+          </div>
+
+          <aside className="space-y-6">
+            <CoursePublishPanel course={course} />
+            <CourseDangerPanel course={course} />
+          </aside>
+        </div>
+      )}
+
+      {tab === 'analytics' && (
+        <CourseAnalyticsPanel courseId={course.id} />
+      )}
     </div>
+  )
+}
+
+function TabButton({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition ${
+        active
+          ? 'border-blue-600 text-blue-700'
+          : 'border-transparent text-gray-600 hover:text-gray-900'
+      }`}
+    >
+      {children}
+    </button>
   )
 }

@@ -33,8 +33,15 @@ export default function NavBar() {
             )}
 
             {hasRole('Admin') && (
-              <NavLink to="/admin/users" className={linkClass}>Users</NavLink>
-            )}
+  <>
+    <NavLink to="/admin/users" className={linkClass}>
+      Users
+    </NavLink>
+    <NavLink to="/admin/categories" className={linkClass}>
+      Categories
+    </NavLink>
+  </>
+)}
           </div>
         </div>
 
