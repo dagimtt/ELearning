@@ -18,3 +18,4 @@ C:\Projects\ELearning\backend\ELearning.Infrastructure\obj\Debug\net10.0\refint\
 C:\Projects\ELearning\backend\ELearning.Infrastructure\obj\Debug\net10.0\ELearning.Infrastructure.pdb
 C:\Projects\ELearning\backend\ELearning.Infrastructure\obj\Debug\net10.0\ELearning.Infrastructure.genruntimeconfig.cache
 C:\Projects\ELearning\backend\ELearning.Infrastructure\obj\Debug\net10.0\ref\ELearning.Infrastructure.dll
+C:\Projects\ELearning\backend\ELearning.Infrastructure\bin\Debug\net10.0\QuestPDF.Fonts.Lato.br

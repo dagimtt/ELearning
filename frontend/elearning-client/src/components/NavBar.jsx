@@ -24,9 +24,16 @@ export default function NavBar() {
           <div className="ml-6 flex gap-1">
             <NavLink to="/courses" className={linkClass}>Catalog</NavLink>
 
-            {hasRole('Learner') && (
-              <NavLink to="/my-courses" className={linkClass}>My Courses</NavLink>
-            )}
+           {hasRole('Learner') && (
+  <>
+    <NavLink to="/my-courses" className={linkClass}>
+      My Courses
+    </NavLink>
+    <NavLink to="/my-certificates" className={linkClass}>
+      Certificates
+    </NavLink>
+  </>
+)}
 
             {hasRole('Instructor') && (
               <NavLink to="/instructor" className={linkClass}>Instructor</NavLink>

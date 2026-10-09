@@ -13,6 +13,7 @@ public class AppDbContext : IdentityDbContext<AppUser, Microsoft.AspNetCore.Iden
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
     public DbSet<LessonProgress> LessonProgresses => Set<LessonProgress>();
+    public DbSet<Certificate> Certificates => Set<Certificate>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

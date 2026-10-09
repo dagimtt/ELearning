@@ -62,7 +62,8 @@ builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
-
+builder.Services.AddScoped<CertificatePdfService>();
+builder.Services.AddScoped<ICertificateService, CertificateService>();
 // Validation
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();

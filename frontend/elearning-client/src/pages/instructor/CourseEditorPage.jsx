@@ -10,7 +10,7 @@ import CourseLessonsPanel from './CourseLessonsPanel'
 import CoursePublishPanel from './CoursePublishPanel'
 import CourseDangerPanel from './CourseDangerPanel'
 import CourseAnalyticsPanel from './CourseAnalyticsPanel'
-
+import CourseCertificatesPanel from './CourseCertificatesPanel'
 export default function CourseEditorPage() {
   const { id } = useParams()
   const [tab, setTab] = useState('content') // 'content' | 'analytics'
@@ -63,13 +63,16 @@ export default function CourseEditorPage() {
 
       {/* Tabs */}
       <div className="border-b mb-6 flex gap-1">
-        <TabButton active={tab === 'content'} onClick={() => setTab('content')}>
-          Content
-        </TabButton>
-        <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
-          Analytics
-        </TabButton>
-      </div>
+  <TabButton active={tab === 'content'} onClick={() => setTab('content')}>
+    Content
+  </TabButton>
+  <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')}>
+    Analytics
+  </TabButton>
+  <TabButton active={tab === 'certificates'} onClick={() => setTab('certificates')}>
+    Certificates
+  </TabButton>
+</div>
 
       {tab === 'content' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -87,6 +90,10 @@ export default function CourseEditorPage() {
 
       {tab === 'analytics' && (
         <CourseAnalyticsPanel courseId={course.id} />
+      )}
+
+      {tab === 'certificates' && (
+        <CourseCertificatesPanel courseId={course.id} />
       )}
     </div>
   )

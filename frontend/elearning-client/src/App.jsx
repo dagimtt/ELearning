@@ -16,6 +16,8 @@ import CourseEditorPage from './pages/instructor/CourseEditorPage'
 import LessonEditorPage from './pages/instructor/LessonEditorPage'
 import AdminUsersPage from './pages/admin/AdminUsersPage'
 import AdminCategoriesPage from './pages/admin/AdminCategoriesPage'
+import MyCertificatesPage from './pages/MyCertificatesPage'
+import CertificateVerifyPage from './pages/CertificateVerifyPage'
 // Placeholder — filled in Milestone 6
 const AdminUsers = () => (
   <div className="p-4">
@@ -129,7 +131,23 @@ export default function App() {
             </RequireAuth>
           }
         />
+{/* Learner certificates */}
+<Route
+  path="/my-certificates"
+  element={
+    <RequireAuth>
+      <RequireRole roles={['Learner']}>
+        <MyCertificatesPage />
+      </RequireRole>
+    </RequireAuth>
+  }
+/>
 
+{/* Public verification — no auth */}
+<Route
+  path="/certificates/verify/:code"
+  element={<CertificateVerifyPage />}
+/>
         {/* Admin */}
         <Route
           path="/admin/users"

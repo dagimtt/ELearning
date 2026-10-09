@@ -35,12 +35,12 @@ export default function CoursePlayerPage() {
         ? enrollmentsApi.unmarkComplete(enrollmentId, lessonId)
         : enrollmentsApi.markComplete(enrollmentId, lessonId),
     onSuccess: () => {
-      // Refresh both the enrollment detail (progress) and lesson content (isCompleted)
       queryClient.invalidateQueries({ queryKey: ['enrollment', enrollmentId] })
       queryClient.invalidateQueries({
         queryKey: ['lesson-content', enrollmentId, activeLesson?.id],
       })
       queryClient.invalidateQueries({ queryKey: ['enrollments'] })
+      queryClient.invalidateQueries({ queryKey: ['my-certificates'] })
     },
   })
 
@@ -54,6 +54,7 @@ export default function CoursePlayerPage() {
     )
 
   const enrollment = detailQuery.data
+  const isComplete = enrollment.progressPercent === 100
 
   const selectLesson = (lessonId) => {
     setSearchParams({ lesson: lessonId })
@@ -77,6 +78,23 @@ export default function CoursePlayerPage() {
             </span>
           </div>
         </div>
+
+        {isComplete && (
+          <div className="p-4 bg-green-50 border-b border-green-200">
+            <div className="text-sm font-semibold text-green-800 mb-1">
+              🎉 Course complete!
+            </div>
+            <p className="text-xs text-green-700">
+              Your instructor can now issue you a certificate.
+            </p>
+            <Link
+              to="/my-certificates"
+              className="text-xs text-green-800 font-medium hover:underline mt-1 inline-block"
+            >
+              Check My Certificates →
+            </Link>
+          </div>
+        )}
 
         <ol className="max-h-[70vh] overflow-y-auto">
           {enrollment.lessons.map((lesson, idx) => {
@@ -136,9 +154,7 @@ export default function CoursePlayerPage() {
               />
             )}
 
-            {lessonQuery.isSuccess && (
-              <LessonBody lesson={lessonQuery.data} />
-            )}
+            {lessonQuery.isSuccess && <LessonBody lesson={lessonQuery.data} />}
 
             <div className="mt-8 pt-6 border-t flex items-center justify-between">
               <CompletionButton
@@ -153,10 +169,10 @@ export default function CoursePlayerPage() {
               />
 
               <NextLessonButton
-  lessons={enrollment.lessons}
-  current={activeLesson}
-  onSelect={selectLesson}
-/>
+                lessons={enrollment.lessons}
+                current={activeLesson}
+                onSelect={selectLesson}
+              />
             </div>
           </>
         )}
@@ -167,7 +183,6 @@ export default function CoursePlayerPage() {
 
 function LessonBody({ lesson }) {
   if (lesson.contentType === 0) {
-    // Text
     return (
       <div className="prose max-w-none text-gray-800 whitespace-pre-line">
         {lesson.contentText}
@@ -176,12 +191,10 @@ function LessonBody({ lesson }) {
   }
 
   if (lesson.contentType === 1) {
-    // Video
     return (
       <div>
         {lesson.videoUrl && (
           <div className="aspect-video bg-black rounded mb-4">
-            {/* Simple embed for YouTube; for real files use <video src={...} controls> */}
             <iframe
               src={toEmbedUrl(lesson.videoUrl)}
               title={lesson.title}
@@ -199,7 +212,6 @@ function LessonBody({ lesson }) {
   }
 
   if (lesson.contentType === 2) {
-    // Attachment
     return (
       <div>
         {lesson.contentText && (
@@ -263,7 +275,6 @@ function NextLessonButton({ lessons, current, onSelect }) {
 }
 
 function toEmbedUrl(url) {
-  // YouTube watch URL → embed URL
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/)
   if (yt) return `https://www.youtube.com/embed/${yt[1]}`
   return url

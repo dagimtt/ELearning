@@ -62,3 +62,21 @@ export const analyticsApi = {
   overview: () =>
     client.get('/instructor/analytics/overview').then(r => r.data),
 }
+
+// ---------- certificates ----------
+
+export const certificatesApi = {
+  issue: (courseId, learnerId, payload) =>
+    client.post(`/courses/${courseId}/certificates/issue/${learnerId}`, payload).then(r => r.data),
+  revoke: (id, reason) =>
+    client.post(`/certificates/${id}/revoke`, { reason }).then(r => r.data),
+  mine: () => client.get('/learner/certificates').then(r => r.data),
+  getById: (id) => client.get(`/certificates/${id}`).then(r => r.data),
+  verify: (code) => client.get(`/certificates/verify/${code}`).then(r => r.data),
+  // PDF is downloaded via a direct URL because we need auth headers,
+  // so we fetch it as a blob and let the caller turn it into a download link.
+  downloadPdf: (id) =>
+    client.get(`/certificates/${id}/pdf`, { responseType: 'blob' }).then(r => r.data),
+  listByCourse: (courseId) =>
+  client.get(`/courses/${courseId}/certificates`).then(r => r.data),
+}
