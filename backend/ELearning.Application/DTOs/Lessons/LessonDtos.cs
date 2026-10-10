@@ -12,6 +12,8 @@ public record LessonDto(
     string? VideoUrl,
     string? AttachmentUrl,
     int OrderIndex,
+    int? ExamPassScore,
+    int? ExamMaxAttempts,
     DateTime CreatedAt,
     DateTime? UpdatedAt);
 
@@ -31,13 +33,22 @@ public record CreateLessonRequest(
     LessonContentType ContentType,
     string? ContentText,
     string? VideoUrl,
-    string? AttachmentUrl);
+    string? AttachmentUrl,
+    int? ExamPassScore,
+    int? ExamMaxAttempts);
 
 public record UpdateLessonRequest(
     string Title,
     LessonContentType ContentType,
     string? ContentText,
     string? VideoUrl,
-    string? AttachmentUrl);
+    string? AttachmentUrl,
+    int? ExamPassScore,
+    int? ExamMaxAttempts);
 
+public record LessonSummaryDto(
+    Guid Id,
+    string Title,
+    int OrderIndex,
+    LessonContentType ContentType);
 public record ReorderLessonsRequest(IReadOnlyList<Guid> LessonIds);

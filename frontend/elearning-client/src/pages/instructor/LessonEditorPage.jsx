@@ -1,29 +1,34 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { lessonsApi, coursesApi } from '../../api/endpoints'
+import { useToast } from '../../toast/ToastContext'
 import FormField from '../../components/FormField'
 import Button from '../../components/Button'
 import Alert from '../../components/Alert'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorState from '../../components/ErrorState'
+import ExamQuestionsPanel from './ExamQuestionsPanel'
 
 const CONTENT_TYPES = {
   TEXT: 0,
   VIDEO: 1,
   ATTACHMENT: 2,
+  EXAM: 3,
 }
 
 const schema = z
   .object({
     title: z.string().min(1, 'Title is required').max(200),
-    contentType: z.coerce.number().int().min(0).max(2),
+    contentType: z.coerce.number().int().min(0).max(3),
     contentText: z.string().max(50000).optional().or(z.literal('')),
     videoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
     attachmentUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+    examPassScore: z.union([z.coerce.number().int().min(1).max(100), z.literal('')]).optional(),
+    examMaxAttempts: z.union([z.coerce.number().int().min(1), z.literal('')]).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.contentType === CONTENT_TYPES.TEXT && !data.contentText?.trim()) {
@@ -47,6 +52,15 @@ const schema = z
         message: 'Attachment lessons need a file URL.',
       })
     }
+    if (data.contentType === CONTENT_TYPES.EXAM) {
+      if (data.examPassScore === '' || data.examPassScore == null) {
+        ctx.addIssue({
+          path: ['examPassScore'],
+          code: 'custom',
+          message: 'Pass score is required for exams.',
+        })
+      }
+    }
   })
 
 export default function LessonEditorPage() {
@@ -54,14 +68,16 @@ export default function LessonEditorPage() {
   const isEdit = !!lessonId
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const toast = useToast()
 
-  // Load the course (so we can show its title in the breadcrumb)
+  const [createdLessonId, setCreatedLessonId] = useState(null)
+  const effectiveLessonId = lessonId || createdLessonId
+
   const courseQuery = useQuery({
     queryKey: ['course', courseId],
     queryFn: () => coursesApi.detail(courseId),
   })
 
-  // Load the lesson if editing
   const lessonQuery = useQuery({
     queryKey: ['lesson', lessonId],
     queryFn: () => lessonsApi.getById(lessonId),
@@ -83,10 +99,11 @@ export default function LessonEditorPage() {
       contentText: '',
       videoUrl: '',
       attachmentUrl: '',
+      examPassScore: 70,
+      examMaxAttempts: '',
     },
   })
 
-  // Populate form when editing
   useEffect(() => {
     if (lessonQuery.data) {
       reset({
@@ -95,6 +112,8 @@ export default function LessonEditorPage() {
         contentText: lessonQuery.data.contentText ?? '',
         videoUrl: lessonQuery.data.videoUrl ?? '',
         attachmentUrl: lessonQuery.data.attachmentUrl ?? '',
+        examPassScore: lessonQuery.data.examPassScore ?? 70,
+        examMaxAttempts: lessonQuery.data.examMaxAttempts ?? '',
       })
     }
   }, [lessonQuery.data, reset])
@@ -109,18 +128,28 @@ export default function LessonEditorPage() {
         contentText: values.contentText || null,
         videoUrl: values.videoUrl || null,
         attachmentUrl: values.attachmentUrl || null,
+        examPassScore: values.contentType === CONTENT_TYPES.EXAM
+          ? Number(values.examPassScore)
+          : null,
+        examMaxAttempts: values.contentType === CONTENT_TYPES.EXAM && values.examMaxAttempts !== ''
+          ? Number(values.examMaxAttempts)
+          : null,
       }
       return isEdit
         ? lessonsApi.update(lessonId, payload)
         : lessonsApi.create(courseId, payload)
     },
-    onSuccess: () => {
+    onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ['course', courseId] })
       queryClient.invalidateQueries({ queryKey: ['instructor-courses'] })
+
       if (isEdit) {
         queryClient.invalidateQueries({ queryKey: ['lesson', lessonId] })
+        toast.success('Lesson saved')
       } else {
-        navigate(`/instructor/courses/${courseId}`)
+        // Just created — switch to edit mode so questions can be added
+        toast.success('Lesson created')
+        navigate(`/instructor/courses/${courseId}/lessons/${saved.id}`, { replace: true })
       }
     },
     onError: (err) => {
@@ -155,6 +184,7 @@ export default function LessonEditorPage() {
     )
 
   const course = courseQuery.data
+  const lessonIsExam = isEdit && lessonQuery.data?.contentType === CONTENT_TYPES.EXAM
 
   return (
     <div className="max-w-3xl">
@@ -177,12 +207,8 @@ export default function LessonEditorPage() {
 
       <div className="bg-white rounded-lg border p-6">
         {errors.root && <Alert type="error">{errors.root.message}</Alert>}
-        {saveMutation.isSuccess && isEdit && (
-          <Alert type="success">Lesson saved.</Alert>
-        )}
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          {/* Title */}
           <FormField
             label="Lesson title"
             type="text"
@@ -191,61 +217,42 @@ export default function LessonEditorPage() {
             error={errors.title?.message}
           />
 
-          {/* Content type selector */}
+          {/* Content type */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Content type
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              <TypeButton
-                value={CONTENT_TYPES.TEXT}
-                current={contentType}
-                label="Text"
-                icon="📝"
-                register={register}
-              />
-              <TypeButton
-                value={CONTENT_TYPES.VIDEO}
-                current={contentType}
-                label="Video"
-                icon="🎬"
-                register={register}
-              />
-              <TypeButton
-                value={CONTENT_TYPES.ATTACHMENT}
-                current={contentType}
-                label="Attachment"
-                icon="📎"
-                register={register}
-              />
+            <div className="grid grid-cols-4 gap-2">
+              <TypeButton value={CONTENT_TYPES.TEXT} current={contentType} label="Text" icon="📝" register={register} />
+              <TypeButton value={CONTENT_TYPES.VIDEO} current={contentType} label="Video" icon="🎬" register={register} />
+              <TypeButton value={CONTENT_TYPES.ATTACHMENT} current={contentType} label="Attachment" icon="📎" register={register} />
+              <TypeButton value={CONTENT_TYPES.EXAM} current={contentType} label="Exam" icon="📋" register={register} />
             </div>
           </div>
 
-          {/* Content-type-specific fields */}
-
+          {/* Text */}
           {contentType === CONTENT_TYPES.TEXT && (
-            <>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Lesson content
-                </label>
-                <textarea
-                  rows={10}
-                  placeholder="Write the lesson content here. Markdown not yet supported — plain text for now."
-                  {...register('contentText')}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm ${
-                    errors.contentText ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {errors.contentText && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.contentText.message}
-                  </p>
-                )}
-              </div>
-            </>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Lesson content
+              </label>
+              <textarea
+                rows={10}
+                placeholder="Write the lesson content here."
+                {...register('contentText')}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm ${
+                  errors.contentText ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.contentText && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.contentText.message}
+                </p>
+              )}
+            </div>
           )}
 
+          {/* Video */}
           {contentType === CONTENT_TYPES.VIDEO && (
             <>
               <FormField
@@ -265,7 +272,6 @@ export default function LessonEditorPage() {
                 </label>
                 <textarea
                   rows={5}
-                  placeholder="Add notes or a transcript to accompany the video."
                   {...register('contentText')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -273,6 +279,7 @@ export default function LessonEditorPage() {
             </>
           )}
 
+          {/* Attachment */}
           {contentType === CONTENT_TYPES.ATTACHMENT && (
             <>
               <FormField
@@ -292,10 +299,68 @@ export default function LessonEditorPage() {
                 </label>
                 <textarea
                   rows={5}
-                  placeholder="Describe what the learner will find in the file."
                   {...register('contentText')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+            </>
+          )}
+
+          {/* Exam */}
+          {contentType === CONTENT_TYPES.EXAM && (
+            <>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description / instructions (optional)
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="e.g. Answer all questions. You may retake the exam up to 3 times."
+                  {...register('contentText')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Pass score (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    {...register('examPassScore')}
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.examPassScore ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {errors.examPassScore && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.examPassScore.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Max attempts (optional)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Leave blank for unlimited"
+                    {...register('examMaxAttempts')}
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.examMaxAttempts ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {errors.examMaxAttempts && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.examMaxAttempts.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </>
           )}
@@ -318,6 +383,13 @@ export default function LessonEditorPage() {
           </div>
         </form>
       </div>
+
+      {/* Question editor — only visible when editing an exam lesson */}
+      {lessonIsExam && (
+        <div className="mt-6">
+          <ExamQuestionsPanel lessonId={lessonId} />
+        </div>
+      )}
     </div>
   )
 }
@@ -342,4 +414,9 @@ function TypeButton({ value, current, label, icon, register }) {
       <div className="text-sm font-medium text-gray-800">{label}</div>
     </label>
   )
+}
+
+function contentTypeIsExam(lessonId) {
+  // Placeholder — we rely on lessonIsExam inside the component instead.
+  return false
 }

@@ -62,5 +62,18 @@ public class UpdateLessonRequestValidator : AbstractValidator<UpdateLessonReques
             RuleFor(x => x.AttachmentUrl).NotEmpty()
                 .WithMessage("Attachment lessons require AttachmentUrl.");
         });
+
+        When(x => x.ContentType == LessonContentType.Exam, () =>
+        {
+            RuleFor(x => x.ExamPassScore)
+                .NotNull().WithMessage("Exam lessons require a pass score.")
+                .InclusiveBetween(1, 100).WithMessage("Pass score must be 1–100.");
+
+            When(x => x.ExamMaxAttempts.HasValue, () =>
+            {
+                RuleFor(x => x.ExamMaxAttempts)
+                    .GreaterThan(0).WithMessage("Max attempts must be at least 1.");
+            });
+        });
     }
 }

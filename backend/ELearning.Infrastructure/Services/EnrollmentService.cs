@@ -155,7 +155,9 @@ public class EnrollmentService : IEnrollmentService
         var existing = enrollment.ProgressRecords.FirstOrDefault(p => p.LessonId == lessonId);
         if (existing is not null)
             return new EnrolledLessonDto(lesson.Id, lesson.Title, lesson.OrderIndex, lesson.ContentType, true, existing.CompletedAt);
-
+if (lesson.ContentType == LessonContentType.Exam)
+    throw new InvalidOperationException(
+        "Exam lessons cannot be marked complete manually. Submit the exam to earn completion.");
         var progress = new LessonProgress
         {
             EnrollmentId = enrollment.Id,

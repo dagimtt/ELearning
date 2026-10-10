@@ -80,3 +80,27 @@ export const certificatesApi = {
   listByCourse: (courseId) =>
   client.get(`/courses/${courseId}/certificates`).then(r => r.data),
 }
+
+export const examsApi = {
+  // Instructor
+  getForInstructor: (lessonId) =>
+    client.get(`/lessons/${lessonId}/exam`).then(r => r.data),
+  addQuestion: (lessonId, payload) =>
+    client.post(`/lessons/${lessonId}/exam/questions`, payload).then(r => r.data),
+  updateQuestion: (questionId, payload) =>
+    client.put(`/exam-questions/${questionId}`, payload).then(r => r.data),
+  deleteQuestion: (questionId) =>
+    client.delete(`/exam-questions/${questionId}`).then(r => r.data),
+  reorderQuestions: (lessonId, questionIds) =>
+    client.patch(`/lessons/${lessonId}/exam/questions/reorder`, { questionIds }).then(r => r.data),
+
+  // Learner
+  getForLearner: (enrollmentId, lessonId) =>
+    client.get(`/enrollments/${enrollmentId}/exam/${lessonId}`).then(r => r.data),
+  submit: (enrollmentId, lessonId, answers) =>
+    client.post(`/enrollments/${enrollmentId}/exam/${lessonId}/submit`, { answers }).then(r => r.data),
+  attempts: (enrollmentId, lessonId) =>
+    client.get(`/enrollments/${enrollmentId}/exam/${lessonId}/attempts`).then(r => r.data),
+
+  
+}

@@ -66,14 +66,18 @@ public class LessonService : ILessonService
             .Select(l => (int?)l.OrderIndex)
             .MaxAsync(ct) ?? -1;
 
+        var isExam = request.ContentType == LessonContentType.Exam;
+
         var lesson = new Lesson
         {
             CourseId = courseId,
             Title = request.Title,
             ContentType = request.ContentType,
-          ContentText = request.ContentText,
-VideoUrl = request.ContentType == LessonContentType.Video ? request.VideoUrl : null,
-AttachmentUrl = request.ContentType == LessonContentType.Attachment ? request.AttachmentUrl : null,
+            ContentText = request.ContentText,
+            VideoUrl = request.ContentType == LessonContentType.Video ? request.VideoUrl : null,
+            AttachmentUrl = request.ContentType == LessonContentType.Attachment ? request.AttachmentUrl : null,
+            ExamPassScore = isExam ? request.ExamPassScore : null,
+            ExamMaxAttempts = isExam ? request.ExamMaxAttempts : null,
             OrderIndex = nextOrder + 1
         };
 
@@ -87,11 +91,15 @@ AttachmentUrl = request.ContentType == LessonContentType.Attachment ? request.At
     {
         var lesson = await GetOwnedLessonAsync(lessonId, ct);
 
+        var isExam = request.ContentType == LessonContentType.Exam;
+
         lesson.Title = request.Title;
         lesson.ContentType = request.ContentType;
-       lesson.ContentText = request.ContentText;
-lesson.VideoUrl = request.ContentType == LessonContentType.Video ? request.VideoUrl : null;
-lesson.AttachmentUrl = request.ContentType == LessonContentType.Attachment ? request.AttachmentUrl : null;
+        lesson.ContentText = request.ContentText;
+        lesson.VideoUrl = request.ContentType == LessonContentType.Video ? request.VideoUrl : null;
+        lesson.AttachmentUrl = request.ContentType == LessonContentType.Attachment ? request.AttachmentUrl : null;
+        lesson.ExamPassScore = isExam ? request.ExamPassScore : null;
+        lesson.ExamMaxAttempts = isExam ? request.ExamMaxAttempts : null;
         lesson.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
@@ -184,5 +192,7 @@ lesson.AttachmentUrl = request.ContentType == LessonContentType.Attachment ? req
     private static LessonDto Map(Lesson l) => new(
         l.Id, l.CourseId, l.Title, l.ContentType,
         l.ContentText, l.VideoUrl, l.AttachmentUrl,
-        l.OrderIndex, l.CreatedAt, l.UpdatedAt);
+        l.OrderIndex,
+        l.ExamPassScore, l.ExamMaxAttempts,
+        l.CreatedAt, l.UpdatedAt);
 }

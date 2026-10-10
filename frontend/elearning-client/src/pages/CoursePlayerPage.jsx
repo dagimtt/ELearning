@@ -4,6 +4,7 @@ import { enrollmentsApi } from '../api/endpoints'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorState from '../components/ErrorState'
 import ProgressBar from '../components/ProgressBar'
+import ExamPlayer from './ExamPlayer'
 
 export default function CoursePlayerPage() {
   const { enrollmentId } = useParams()
@@ -15,20 +16,17 @@ export default function CoursePlayerPage() {
     queryFn: () => enrollmentsApi.detail(enrollmentId),
   })
 
-  // Determine active lesson: from URL, or default to first lesson
   const lessons = detailQuery.data?.lessons ?? []
   const requestedLessonId = searchParams.get('lesson')
   const activeLesson =
     lessons.find((l) => l.id === requestedLessonId) ?? lessons[0]
 
-  // Fetch content for active lesson
   const lessonQuery = useQuery({
     queryKey: ['lesson-content', enrollmentId, activeLesson?.id],
     queryFn: () => enrollmentsApi.lessonContent(enrollmentId, activeLesson.id),
-    enabled: !!activeLesson?.id,
+    enabled: !!activeLesson?.id && activeLesson.contentType !== 3,
   })
 
-  // Toggle completion
   const toggleMutation = useMutation({
     mutationFn: ({ lessonId, complete }) =>
       complete
@@ -118,6 +116,11 @@ export default function CoursePlayerPage() {
                   </span>
                   <span className="flex-1 text-sm text-gray-800">
                     {lesson.title}
+                    {lesson.contentType === 3 && (
+                      <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
+                        Exam
+                      </span>
+                    )}
                   </span>
                 </button>
               </li>
@@ -145,35 +148,54 @@ export default function CoursePlayerPage() {
               </div>
             </div>
 
-            {lessonQuery.isLoading && <LoadingSpinner label="Loading lesson…" />}
-
-            {lessonQuery.isError && (
-              <ErrorState
-                message="Could not load this lesson."
-                onRetry={() => lessonQuery.refetch()}
+            {/* Exam lesson */}
+            {activeLesson.contentType === 3 && (
+              <ExamPlayer
+                enrollmentId={enrollmentId}
+                lessonId={activeLesson.id}
+                isCompleted={activeLesson.isCompleted}
+                onProgressChange={() => {
+                  queryClient.invalidateQueries({ queryKey: ['enrollment', enrollmentId] })
+                  queryClient.invalidateQueries({ queryKey: ['enrollments'] })
+                  queryClient.invalidateQueries({ queryKey: ['my-certificates'] })
+                }}
               />
             )}
 
-            {lessonQuery.isSuccess && <LessonBody lesson={lessonQuery.data} />}
+            {/* Non-exam lessons */}
+            {activeLesson.contentType !== 3 && (
+              <>
+                {lessonQuery.isLoading && <LoadingSpinner label="Loading lesson…" />}
 
-            <div className="mt-8 pt-6 border-t flex items-center justify-between">
-              <CompletionButton
-                lesson={activeLesson}
-                pending={toggleMutation.isPending}
-                onClick={() =>
-                  toggleMutation.mutate({
-                    lessonId: activeLesson.id,
-                    complete: activeLesson.isCompleted,
-                  })
-                }
-              />
+                {lessonQuery.isError && (
+                  <ErrorState
+                    message="Could not load this lesson."
+                    onRetry={() => lessonQuery.refetch()}
+                  />
+                )}
 
-              <NextLessonButton
-                lessons={enrollment.lessons}
-                current={activeLesson}
-                onSelect={selectLesson}
-              />
-            </div>
+                {lessonQuery.isSuccess && <LessonBody lesson={lessonQuery.data} />}
+
+                <div className="mt-8 pt-6 border-t flex items-center justify-between">
+                  <CompletionButton
+                    lesson={activeLesson}
+                    pending={toggleMutation.isPending}
+                    onClick={() =>
+                      toggleMutation.mutate({
+                        lessonId: activeLesson.id,
+                        complete: activeLesson.isCompleted,
+                      })
+                    }
+                  />
+
+                  <NextLessonButton
+                    lessons={enrollment.lessons}
+                    current={activeLesson}
+                    onSelect={selectLesson}
+                  />
+                </div>
+              </>
+            )}
           </>
         )}
       </main>

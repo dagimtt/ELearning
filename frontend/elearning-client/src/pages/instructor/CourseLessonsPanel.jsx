@@ -5,8 +5,8 @@ import { lessonsApi } from '../../api/endpoints'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import Alert from '../../components/Alert'
 
-const contentTypeLabel = (t) => ({ 0: 'Text', 1: 'Video', 2: 'Attachment' }[t] ?? 'Lesson')
-
+const contentTypeLabel = (t) =>
+  ({ 0: 'Text', 1: 'Video', 2: 'Attachment', 3: 'Exam' }[t] ?? 'Lesson')
 export default function CourseLessonsPanel({ course }) {
   const queryClient = useQueryClient()
   const [pendingDelete, setPendingDelete] = useState(null)

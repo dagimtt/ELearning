@@ -15,6 +15,7 @@ public class Lesson : BaseEntity
     public string? AttachmentUrl { get; set; }
 
     public int OrderIndex { get; set; }
-
+    public int? ExamPassScore { get; set; }       // 0-100, null if not an exam
+    public int? ExamMaxAttempts { get; set; }     // null = unlimited
     public ICollection<LessonProgress> ProgressRecords { get; set; } = new List<LessonProgress>();
 }
